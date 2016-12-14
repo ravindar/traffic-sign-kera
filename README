@@ -5,12 +5,28 @@ TensorFlow
 Python 3
 
 Instructions
+Install
+OS X or Linux
+Prerequisites
+Intro to TensorFlow requires Python 3.4 or higher[https://www.python.org/downloads/] and Anaconda[https://www.continuum.io/downloads]. If you don't meet all of these requirements, please install the appropriate package(s).
+
+Install TensorFlow
+You're going to use an Anaconda environment for this class. If you're unfamiliar with Anaconda environments, check out the official documentation[http://conda.pydata.org/docs/using/envs.html].
+
+Run the following commands to setup your environment:
+
+    conda create --name=IntroToTensorFlow python=3 anaconda
+    source activate IntroToTensorFlow
+    conda install -c conda-forge tensorflow
+
+That's it! You have a working environment with TensorFlow. Test it out with the code in the Hello, world! section below.
+
 1. Create a new conda environment.
         conda create -n keras python=3.5
         source activate keras
 2. Install TensorFlow.
         conda install -c conda-forge tensorflow
-        If you want to use the GPU version, follow the instructions here
+        If you want to use the GPU version, follow the instructions here(https://www.tensorflow.org/versions/r0.11/get_started/os_setup.html#using-pip)
 3. Install Keras. You only need the latest stable version.
         pip install keras
         You might need to pip[3] install:
@@ -38,3 +54,47 @@ Instructions
 
 8. train (https://d17h27t6h515a5.cloudfront.net/topher/2016/October/580ad86d_train/train.p) and test(https://d17h27t6h515a5.cloudfront.net/topher/2016/October/580ad89e_test/test.p) data files
 
+
+For CNN:
+Dimensionality
+From what we've learned so far, how can we calculate the number of neurons of each layer in our CNN?
+
+Given our input layer has a volume of W, our filter has a volume (height * width * depth) of F, we have a stride of S, and a padding of P, the following formula gives us the volume of the next layer: (W−F+2P)/S+1.
+
+Knowing the dimensionality of each additional layer helps us understand how large our model is and how our decisions around filter size and stride affect the size of our network.
+
+Introduction
+For the next few quizzes we'll test your understanding the dimensions in CNNs. Understanding dimensions will help you make accurate tradeoffs between model size and performance. As you'll see, some parameters have a much bigger impact on model size than others.
+
+Setup
+H = height, W = width, D = depth
+
+We have an input of shape 32x32x3 (HxWxD)
+20 filters of shape 8x8x3 (HxWxD)
+A stride of 2 for both the height and width (S)
+Valid padding of size 1 (P)
+Recall the formula for calculating the new height or width:
+
+new_height = (input_height - filter_height + 2 * P)/S + 1
+new_width = (input_width - filter_width + 2 * P)/S + 1
+
+Solution
+The answer is 14x14x20.
+
+We can get the new height and width with the formula resulting in:
+
+(32 - 8 + 2 * 1)/2 + 1 = 14
+(32 - 8 + 2 * 1)/2 + 1 = 14
+The new depth is equal to the number of filters, which is 20.
+This would correspond to the following code:
+
+input = tf.placeholder(tf.float32, (None, 32, 32, 3))
+filter_weights = tf.Variable(tf.truncated_normal((8, 8, 3, 20))) # (height, width, input_depth, output_depth)
+filter_bias = tf.Variable(tf.zeros(20))
+strides = [1, 2, 2, 1] # (batch, height, width, depth)
+padding = 'VALID'
+conv = tf.nn.conv2d(input, filter_weights, strides, padding) + filter_bias
+Note the output shape of conv will be [1, 13, 13, 20]. It's 4D to account for batch size, but more importantly,
+it's not [1, 14, 14, 20]. This is because the padding algorithm TensorFlow uses is not exactly the same as the one above.
+An alternative algorithm is to switch padding from 'VALID' to SAME which would result in an output shape of [1, 16, 16, 20].
+If you're curious how padding works in TensorFlow, read this document[https://www.tensorflow.org/api_docs/python/nn/convolution].
